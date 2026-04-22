@@ -4,7 +4,10 @@
 #include <string>
 #include "mmu.h"
 #include "pagetable.h"
-
+#include <string_view>
+#include <ranges>
+#include <sstream>
+#include <vector>
 // 64 MB (64 * 1024 * 1024)
 #define PHYSICAL_MEMORY 67108864
 
@@ -41,8 +44,24 @@ int main(int argc, char **argv)
     std::getline(std::cin, command);
     while (command != "exit")
     {
+        std::stringstream ss(command);
+        std::string token;
+        std::vector<std::string> parts;
+
+        while (std::getline(ss, token, ',')) {
+            parts.push_back(token);
+        }
+
+        int parts_count = parts.size();
         // Handle command
-        // TODO: implement this!
+        // TODO: implement this
+        if(parts[0] == "create"){
+            if(parts_count == 1){
+                std::cout << "Invalid [Create] arguments\n";
+            } else{
+                createProcess(parts[1],  parts[2], &mmu, &page_table);
+            }
+        }
 
         // Get next command
         std::cout << "> ";
@@ -80,6 +99,14 @@ void createProcess(int text_size, int data_size, Mmu *mmu, PageTable *page_table
     //   - create new process in the MMU
     //   - allocate new variables for the <TEXT>, <GLOBALS>, and <STACK>
     //   - print pid
+
+    //  - create new process in the MMU
+    uint32_t new_pid = mmu->createProcess();
+
+    //   - allocate new variables for the <TEXT>, <GLOBALS>, and <STACK>
+
+    //   - print pid
+    std::cout << new_pid << "\n";
 }
 
 void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_t num_elements, Mmu *mmu, PageTable *page_table)
