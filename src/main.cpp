@@ -44,11 +44,14 @@ int main(int argc, char **argv)
     std::getline(std::cin, command);
     while (command != "exit")
     {
+        // parts will have the seperate parts of the input
+        // parts_count is the length of the parts array
+
         std::stringstream ss(command);
         std::string token;
         std::vector<std::string> parts;
 
-        while (std::getline(ss, token, ',')) {
+        while (std::getline(ss, token, ' ')) {
             parts.push_back(token);
         }
 
@@ -59,8 +62,18 @@ int main(int argc, char **argv)
             if(parts_count == 1){
                 std::cout << "Invalid [Create] arguments\n";
             } else{
-                createProcess(parts[1],  parts[2], &mmu, &page_table);
+                createProcess(stoi(parts[1]),  stoi(parts[2]), mmu, page_table);
             }
+        } else if(parts[0] == "allocate"){
+
+        } else if(parts[0] == "set"){
+            
+        } else if(parts[0] == "free"){
+            
+        } else if(parts[0] == "terminate"){
+            
+        } else if(parts[0] == "print"){
+            
         }
 
         // Get next command
