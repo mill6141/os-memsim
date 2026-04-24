@@ -18,6 +18,10 @@ void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *valu
 void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_table);
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table);
 
+
+int findFreeSpace(uint32_t pid, int bytesNeeded, Mmu *mmu, PageTable *page_table);
+void moveFreeSpace(uint32_t pid, int bytes, Mmu *mmu);
+
 int main(int argc, char **argv)
 {
     // Ensure user specified page size as a command line parameter
@@ -133,8 +137,33 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     //   - insert variable into MMU
     //   - print virtual memory address
 
-
     
+    // Find how much space is needed depending on datatype
+    int bytesNeeded = num_elements;
+    if(type == DataType::Char){
+        bytesNeeded *= 1;
+    } else if(type == DataType::Int || type == DataType::Float){
+        bytesNeeded *= 4;
+    } else if(type == DataType::Short){
+        bytesNeeded *= 2;
+    } else if(type == DataType::Long || type == DataType::Double){
+        bytesNeeded *= 8;
+    }
+
+    // Now we need to find the first free space?
+    int freeSpaceID = findFreeSpace(pid, bytesNeeded, mmu, page_table);
+
+    if(freeSpaceID != -1){
+        // Free space was found! Just insert here :D
+        mmu->addVariableToProcess(pid, var_name, type, bytesNeeded, freeSpaceID);
+
+        // I think something needs to be done here to move the FREESPACE variables starting address and size;
+        moveFreeSpace(pid, bytesNeeded, mmu);
+    } else{
+        // No Free space big enough.... what to do here....
+    }
+
+
 }
 
 void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *value, Mmu *mmu, PageTable *page_table, uint8_t *memory)
@@ -158,4 +187,27 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
     // TODO: implement this!
     //   - remove process from MMU
     //   - free all pages associated with given process
+}
+
+
+int findFreeSpace(uint32_t pid, int bytesNeeded, Mmu *mmu, PageTable *page_table){
+    Process* p = mmu->getProcessFromPid(pid);
+
+    int found_space = -1;
+    for (Variable* v : p->variables){
+        if(v->type == FreeSpace && v->size >= bytesNeeded){
+            found_space = v->virtual_address;
+            break;
+        }
+    }
+
+    //printf("Found free space @ virtual address: %x\n", found_space); //Optional print, confirms this is working as intended (at least for [create])
+    return found_space; // Will either return virtual address of free space, or -1 if there isn't any suitable
+}
+
+void moveFreeSpace(uint32_t pid, int bytes, Mmu *mmu){
+    Process* p = mmu->getProcessFromPid(pid);
+
+    p->variables[0]->virtual_address += bytes; // variables[0] Should be free space
+    p->variables[0]->size -= bytes;
 }

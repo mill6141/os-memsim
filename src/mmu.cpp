@@ -65,3 +65,7 @@ void Mmu::print()
         }
     }
 }
+
+Process* Mmu::getProcessFromPid(uint32_t pid){
+    return _processes.at(pid-1024);
+}
