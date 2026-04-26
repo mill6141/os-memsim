@@ -20,7 +20,8 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table);
 
 
 int findFreeSpace(uint32_t pid, int bytesNeeded, Mmu *mmu, PageTable *page_table);
-void moveFreeSpace(uint32_t pid, int bytes, Mmu *mmu);
+void moveFreeSpace(uint32_t pid, int bytes, Mmu *mmu, PageTable *page_table);
+DataType findDtype(std::string s);
 
 int main(int argc, char **argv)
 {
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
 
     // Create MMU and Page Table
     Mmu *mmu = new Mmu(PHYSICAL_MEMORY);
-    PageTable *page_table = new PageTable(page_size);
+    PageTable *page_table = new PageTable(page_size, PHYSICAL_MEMORY);
 
     // Prompt loop
     std::string command;
@@ -69,6 +70,12 @@ int main(int argc, char **argv)
                 createProcess(stoi(parts[1]),  stoi(parts[2]), mmu, page_table);
             }
         } else if(parts[0] == "allocate"){
+            if(parts_count == 1){
+                std::cout << "Invalid [allocate] arguments\n";
+            } else{
+                DataType dtype = findDtype(parts[3]);
+                allocateVariable(stoi(parts[1]),  parts[2], dtype, stoi(parts[4]), mmu, page_table);
+            }
 
         } else if(parts[0] == "set"){
             
@@ -77,7 +84,13 @@ int main(int argc, char **argv)
         } else if(parts[0] == "terminate"){
             
         } else if(parts[0] == "print"){
-            
+            if(parts_count == 1){
+                std::cout << "Invalid [print] arguments\n";
+            } else{
+                if(parts[1] == "page"){
+                    page_table->print();
+                }
+            }
         }
 
         // Get next command
@@ -91,6 +104,26 @@ int main(int argc, char **argv)
     delete page_table;
 
     return 0;
+}
+
+DataType findDtype(std::string s){
+    if(s == "int"){
+        return DataType::Int;
+    } else if( s == "freespace"){
+        return DataType::FreeSpace;
+    } else if( s == "char"){
+        return DataType::Char;
+    } else if( s == "short"){
+        return DataType::Short;
+    } else if( s == "float"){
+        return DataType::Float;
+    } else if( s == "long"){
+        return DataType::Long;
+    } else if( s == "double"){
+        return DataType::Double;
+    } else{
+        throw std::invalid_argument("Invalid datatype");
+    }
 }
 
 void printStartMessage(int page_size)
@@ -158,7 +191,7 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
         mmu->addVariableToProcess(pid, var_name, type, bytesNeeded, freeSpaceID);
 
         // I think something needs to be done here to move the FREESPACE variables starting address and size;
-        moveFreeSpace(pid, bytesNeeded, mmu);
+        moveFreeSpace(pid, bytesNeeded, mmu, page_table);
     } else{
         // No Free space big enough.... what to do here....
     }
@@ -201,11 +234,11 @@ int findFreeSpace(uint32_t pid, int bytesNeeded, Mmu *mmu, PageTable *page_table
         }
     }
 
-    //printf("Found free space @ virtual address: %x\n", found_space); //Optional print, confirms this is working as intended (at least for [create])
+    printf("Found free space @ virtual address: %x\n", found_space); //Optional print, confirms this is working as intended (at least for [create])
     return found_space; // Will either return virtual address of free space, or -1 if there isn't any suitable
 }
 
-void moveFreeSpace(uint32_t pid, int bytes, Mmu *mmu){
+void moveFreeSpace(uint32_t pid, int bytes, Mmu *mmu, PageTable *page_table){
     Process* p = mmu->getProcessFromPid(pid);
 
     p->variables[0]->virtual_address += bytes; // variables[0] Should be free space

@@ -2,3 +2,4 @@ bin/memsim
 obj/main.o
 obj/mmu.o
 obj/pagetable.o
+test/test_output.txt

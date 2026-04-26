@@ -25,12 +25,14 @@ struct PageTableKeyComparator
 class PageTable {
 private:
     int _page_size;
+    int num_pages;
+    std::vector<bool> used_pages;
     std::map<std::string, int> _table;
 
     std::vector<std::string> sortedKeys();
 
 public:
-    PageTable(int page_size);
+    PageTable(int page_size, int);
     ~PageTable();
 
     void addEntry(uint32_t pid, int page_number);
