@@ -100,3 +100,8 @@ void PageTable::print()
                   << std::endl;
     }
 }
+
+
+int PageTable::getPageSize(){
+    return _page_size;
+}

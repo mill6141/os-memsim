@@ -23,6 +23,10 @@ int findFreeSpace(uint32_t pid, int bytesNeeded, Mmu *mmu, PageTable *page_table
 void moveFreeSpace(uint32_t pid, int bytes, Mmu *mmu, PageTable *page_table);
 DataType findDtype(std::string s);
 
+Variable* getFreeSpace(uint32_t pid, Mmu* mmu, PageTable* page_table);
+int getFreeSpaceAddress(uint32_t pid, Mmu* mmu, PageTable* page_table);
+void setFreeSpaceAddress(uint32_t pid, int end_address,Mmu* mmu,PageTable* page_table);
+
 int main(int argc, char **argv)
 {
     // Ensure user specified page size as a command line parameter
@@ -170,6 +174,8 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     //   - insert variable into MMU
     //   - print virtual memory address
 
+    std::string print_string = "";
+
     
     // Find how much space is needed depending on datatype
     int bytesNeeded = num_elements;
@@ -187,13 +193,45 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     int freeSpaceID = findFreeSpace(pid, bytesNeeded, mmu, page_table);
 
     if(freeSpaceID != -1){
+        int first_page = freeSpaceID / page_table->getPageSize();
+        int last_page  = (freeSpaceID + bytesNeeded - 1) / page_table->getPageSize();
+
+        // Make sure we have all the pages needed
+        for (int i=first_page; i<=last_page; i++){
+            page_table->addEntry(pid, i);
+        }
+
         // Free space was found! Just insert here :D
         mmu->addVariableToProcess(pid, var_name, type, bytesNeeded, freeSpaceID);
 
         // I think something needs to be done here to move the FREESPACE variables starting address and size;
         moveFreeSpace(pid, bytesNeeded, mmu, page_table);
+
+        print_string = std::to_string(freeSpaceID);
     } else{
         // No Free space big enough.... what to do here....
+
+        // Find the next unallocated page number
+        int freeSpaceAdd = getFreeSpaceAddress(pid, mmu, page_table); // This gives us the address of FREESPACE
+        int next_page = (freeSpaceAdd / page_table->getPageSize()) + 1;
+        int new_virtual_address = next_page * page_table->getPageSize();
+        int last_page = (new_virtual_address + bytesNeeded - 1) / page_table->getPageSize();
+
+        for (int i=next_page; i<=last_page; i++){
+            page_table->addEntry(pid, i);
+        }
+
+        mmu->addVariableToProcess(pid, var_name, type, bytesNeeded, next_page * page_table->getPageSize()); // Add variable with address starting at new page
+        
+        // Moving the freeSpace
+        int end_address = new_virtual_address + bytesNeeded;
+        setFreeSpaceAddress(pid, end_address, mmu, page_table);
+
+        print_string = std::to_string(new_virtual_address);
+    }
+
+    if(var_name[0] != '<'){
+        std::cout << print_string << "\n";
     }
 
 
@@ -241,6 +279,30 @@ int findFreeSpace(uint32_t pid, int bytesNeeded, Mmu *mmu, PageTable *page_table
 void moveFreeSpace(uint32_t pid, int bytes, Mmu *mmu, PageTable *page_table){
     Process* p = mmu->getProcessFromPid(pid);
 
-    p->variables[0]->virtual_address += bytes; // variables[0] Should be free space
-    p->variables[0]->size -= bytes;
+    // Same loop from findFreeSpace, we are looking for the freespace.
+    for(Variable* v : p->variables){
+        if(v->type == DataType::FreeSpace){
+            v->virtual_address += bytes;
+            v->size -= bytes;
+            break;
+        }
+    }
+}
+
+Variable* getFreeSpace(uint32_t pid, Mmu* mmu, PageTable* page_table){
+    Process* p = mmu->getProcessFromPid(pid);
+
+    for (Variable* v : p->variables){
+        if(v->type == DataType::FreeSpace){
+            return v;
+        }
+    }
+}
+
+int getFreeSpaceAddress(uint32_t pid, Mmu* mmu, PageTable* page_table){
+    return getFreeSpace(pid, mmu, page_table)->virtual_address;
+}
+
+void setFreeSpaceAddress(uint32_t pid, int end_address,Mmu* mmu,PageTable* page_table){
+    getFreeSpace(pid, mmu, page_table)->virtual_address = end_address;
 }
