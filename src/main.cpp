@@ -272,7 +272,7 @@ int findFreeSpace(uint32_t pid, int bytesNeeded, Mmu *mmu, PageTable *page_table
         }
     }
 
-    printf("Found free space @ virtual address: %x\n", found_space); //Optional print, confirms this is working as intended (at least for [create])
+    //printf("Found free space @ virtual address: %x\n", found_space); //Optional print, confirms this is working as intended (at least for [create])
     return found_space; // Will either return virtual address of free space, or -1 if there isn't any suitable
 }
 
