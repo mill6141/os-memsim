@@ -297,6 +297,8 @@ Variable* getFreeSpace(uint32_t pid, Mmu* mmu, PageTable* page_table){
             return v;
         }
     }
+
+    return nullptr; // if we don't find anything
 }
 
 int getFreeSpaceAddress(uint32_t pid, Mmu* mmu, PageTable* page_table){
@@ -304,5 +306,13 @@ int getFreeSpaceAddress(uint32_t pid, Mmu* mmu, PageTable* page_table){
 }
 
 void setFreeSpaceAddress(uint32_t pid, int end_address,Mmu* mmu,PageTable* page_table){
-    getFreeSpace(pid, mmu, page_table)->virtual_address = end_address;
+    Variable* fs = getFreeSpace(pid, mmu, page_table);
+
+    int old_address = fs->virtual_address;
+
+    // Update addy
+    fs->virtual_address = end_address;
+
+    // Now update size
+    fs->size -= (end_address - old_address);
 }
