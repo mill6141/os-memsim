@@ -84,8 +84,19 @@ int main(int argc, char **argv)
         } else if(parts[0] == "set"){
             
         } else if(parts[0] == "free"){
+            std::cout << "Freeing \n";
+            if(parts_count == 1){
+                std::cout << "Invalid [free] arguments\n";
+            } else{
+                freeVariable(stoi(parts[1]), parts[2], mmu, page_table);
+            }
             
         } else if(parts[0] == "terminate"){
+            if(parts_count == 1){
+                std::cout << "Invalid [terminate] arguments\n";
+            } else{
+                terminateProcess(stoi(parts[1]), mmu, page_table);
+            }
             
         } else if(parts[0] == "print"){
             if(parts_count == 1){
@@ -251,6 +262,9 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
     // TODO: implement this!
     //   - remove entry from MMU
     //   - free page if this variable was the only one on a given page
+
+    page_table->freePageIfRemovingOnlyVariable(pid, var_name, mmu);
+    mmu->removeVariable(pid, var_name);
 }
 
 void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
@@ -258,6 +272,13 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
     // TODO: implement this!
     //   - remove process from MMU
     //   - free all pages associated with given process
+
+    // Let's free the pages first
+    page_table->freeAllPagesFromProcess(pid);
+
+    // Now remove the process
+    mmu->removeProcess(pid);
+
 }
 
 

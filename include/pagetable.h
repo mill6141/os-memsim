@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "mmu.h"
 
 struct PageTableKeyComparator
 {
@@ -39,6 +40,9 @@ public:
     int getPhysicalAddress(uint32_t pid, uint32_t virtual_address);
     void print();
     int getPageSize();
+
+    void freeAllPagesFromProcess(uint32_t pid);
+    void freePageIfRemovingOnlyVariable(uint32_t pid, std::string var_name, Mmu* mmu);
 };
 
 #endif // __PAGETABLE_H_
