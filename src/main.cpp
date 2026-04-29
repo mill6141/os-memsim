@@ -157,6 +157,8 @@ int main(int argc, char **argv)
                     // (This is the final small task if you want the extra credit details!)
                 }
             }
+        } else{
+            std::cout << "error: command not recognized" << std::endl;
         }
 
         // Get next command
@@ -236,6 +238,19 @@ void allocateVariable(uint32_t pid, std::string var_name, DataType type, uint32_
     //   - insert variable into MMU
     //   - print virtual memory address
 
+    Process* p = mmu->getProcessFromPid(pid);
+    if(p == nullptr){
+        std::cout << "error: process not found" << std::endl;
+        return;
+    } else{
+        for(Variable* v : p->variables){
+            if(v->name == var_name){
+                std::cout << "error: Variable already exists" << std::endl;
+                return;
+            }
+        }
+    }
+
     std::string print_string = "";
 
     
@@ -303,6 +318,10 @@ void setVariable(uint32_t pid, std::string var_name, uint32_t offset, void *valu
     // Find the process and variable in the MMU
     Process* proc = mmu->getProcessFromPid(pid); 
     // (Note: You should add error checking here for "process not found")
+    if(proc == nullptr){
+        std::cout << "error: process not found" << std::endl;
+        return;
+    }
     
     Variable* var = nullptr;
     for (auto v : proc->variables) {
@@ -422,6 +441,12 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
     // TODO: implement this!
     //   - remove process from MMU
     //   - free all pages associated with given process
+
+    Process* p = mmu->getProcessFromPid(pid);
+    if(p == nullptr){
+        std::cout << "error: process not found" << std::endl;
+        return;
+    }
 
     // Let's free the pages first
     page_table->freeAllPagesFromProcess(pid);
