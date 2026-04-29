@@ -81,6 +81,7 @@ int main(int argc, char **argv)
                 allocateVariable(stoi(parts[1]),  parts[2], dtype, stoi(parts[4]), mmu, page_table);
             }
 
+
         } else if(parts[0] == "set") {
             if(parts_count < 5) {
                  std::cout << "error: invalid command" << std::endl;
@@ -132,6 +133,7 @@ int main(int argc, char **argv)
              }
             }
         }else if(parts[0] == "print"){
+
             if(parts_count == 1){
                 std::cout << "Invalid [print] arguments\n";
             } else{
@@ -369,6 +371,7 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
     int last_page = (targetVar->virtual_address + targetVar->size - 1) / page_table->getPageSize();
 
     //   - remove entry from MMU
+
     proc->variables.erase(proc->variables.begin() + varIndex);
 
 
@@ -388,6 +391,13 @@ void freeVariable(uint32_t pid, std::string var_name, Mmu *mmu, PageTable *page_
         }
     }
     delete targetVar;
+
+/*
+    //   - free page if this variable was the only one on a given page
+
+    page_table->freePageIfRemovingOnlyVariable(pid, var_name, mmu);
+    mmu->removeVariable(pid, var_name);
+*/
 }
     
 
@@ -396,6 +406,13 @@ void terminateProcess(uint32_t pid, Mmu *mmu, PageTable *page_table)
     // TODO: implement this!
     //   - remove process from MMU
     //   - free all pages associated with given process
+
+    // Let's free the pages first
+    page_table->freeAllPagesFromProcess(pid);
+
+    // Now remove the process
+    mmu->removeProcess(pid);
+
 }
 
 

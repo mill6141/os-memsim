@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "pagetable.h"
 #include <iomanip>
+#include <mmu.h>
 
 PageTable::PageTable(int page_size, int physical_memory)
 {
@@ -106,6 +107,7 @@ int PageTable::getPageSize(){
     return _page_size;
 }
 
+
 void PageTable::removeEntry(uint32_t pid, int page_number) {
     std::string key = std::to_string(pid) + "|" + std::to_string(page_number);
     
@@ -115,3 +117,73 @@ void PageTable::removeEntry(uint32_t pid, int page_number) {
         _table.erase(key);           // Remove from virtual lookup
     }
 }
+
+/*
+void PageTable::freeAllPagesFromProcess(uint32_t pid){
+
+    std::vector<std::string> keys = sortedKeys();
+
+    for (int i = 0; i < keys.size(); i++)
+    {
+        // Split "1024|3" into pid and page_number
+        std::string key = keys[i];
+        int delimiter = key.find('|');
+        std::string pid_str = key.substr(0, delimiter);
+        std::string page_str = key.substr(delimiter + 1);
+        int frame = _table[key];
+
+        if(stoi(pid_str) == pid){
+            // release the frame
+            _table.erase(key);
+            used_pages.at(frame) = false;
+        } else{
+            // Not the right process, ignore
+            continue;
+        }
+    }
+
+}
+
+void PageTable::freePageIfRemovingOnlyVariable(uint32_t pid, std::string var_name, Mmu* mmu){
+    Process* p = mmu->getProcessFromPid(pid);
+    Variable* v = mmu->getVariable(pid, var_name);
+
+    if(p == nullptr) return;
+    if(v == nullptr) return;
+
+    int first_page = v->virtual_address / _page_size;
+    int last_page  = (v->virtual_address + v->size - 1) / _page_size;
+
+    for(int i=first_page; i<=last_page; i++){
+        bool dupe_page = false;
+        // Loop through every other variable in the process, if none of them are between these pages, free them
+        for( Variable* var: p->variables){
+            if(var->name == var_name){
+                continue;
+            }
+
+            int var_first_page = var->virtual_address / _page_size;
+            int var_last_page  = (var->virtual_address + var->size - 1) / _page_size;
+            if(var_first_page <= i && i <= var_last_page){
+                dupe_page = true;
+                break;
+            }
+        }
+
+        if(!dupe_page){
+            // Should be fine to delete page
+
+            std::string key = std::to_string(pid) + "|" + std::to_string(i);
+            int frame = _table[key];
+
+
+            _table.erase(key);
+            used_pages.at(frame) = false;
+        }
+    }
+
+
+}
+>>>>>>> origin/Jon
+
+*/

@@ -83,5 +83,54 @@ void Mmu::print()
     }
 }
 Process* Mmu::getProcessFromPid(uint32_t pid){
-    return _processes.at(pid-1024);
+
+    for( Process* p : _processes){
+        if(p->pid == pid){
+            return p;
+        }
+    }
+
+    return nullptr;
+}
+
+void Mmu::removeProcess(uint32_t pid){
+
+    int index = -1;
+
+    for(int i=0; i<_processes.size(); i++){
+        if(_processes[i]->pid == pid){
+            index = i;
+            break;
+        }
+    }
+
+    if(index == -1){
+        // Couldn't find pid 
+        return;
+    }
+
+    _processes.erase(_processes.begin() + index);
+}
+
+void Mmu::removeVariable(uint32_t pid, std::string var_name){
+    Process* p = getProcessFromPid(pid);
+
+    for( int i=0; i<p->variables.size(); i++){
+        if(p->variables.at(i)->name == var_name){
+            // remove this variable from list, do I have to delete the pointer too?? idk
+            p->variables.erase(p->variables.begin() + i);
+        }
+    }
+}
+
+Variable* Mmu::getVariable(uint32_t pid, std::string var_name){
+    Process* p = getProcessFromPid(pid);
+
+    for(Variable* v: p->variables){
+        if(v->name == var_name){
+            return v;
+        }
+    }
+
+    return nullptr;
 }
