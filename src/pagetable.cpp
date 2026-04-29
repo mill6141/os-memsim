@@ -105,3 +105,13 @@ void PageTable::print()
 int PageTable::getPageSize(){
     return _page_size;
 }
+
+void PageTable::removeEntry(uint32_t pid, int page_number) {
+    std::string key = std::to_string(pid) + "|" + std::to_string(page_number);
+    
+    if (_table.count(key) > 0) {
+        int frame = _table[key];
+        used_pages.at(frame) = false; // Mark physical memory as free
+        _table.erase(key);           // Remove from virtual lookup
+    }
+}

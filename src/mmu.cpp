@@ -1,5 +1,6 @@
 #include <iostream>
 #include <algorithm>
+#include <iomanip>
 #include "mmu.h"
 
 Mmu::Mmu(int memory_size)
@@ -53,19 +54,34 @@ void Mmu::addVariableToProcess(uint32_t pid, std::string var_name, DataType type
 
 void Mmu::print()
 {
-    int i, j;
-
-    std::cout << " PID  | Variable Name | Virtual Addr | Size" << std::endl;
+    std::cout << " PID  | Variable Name | Virtual Addr | Size     " << std::endl;
     std::cout << "------+---------------+--------------+------------" << std::endl;
-    for (i = 0; i < _processes.size(); i++)
+
+    for (int i = 0; i < _processes.size(); i++)
     {
-        for (j = 0; j < _processes[i]->variables.size(); j++)
+        for (int j = 0; j < _processes[i]->variables.size(); j++)
         {
-            // TODO: print all variables (excluding those of type DataType::FreeSpace)
+            Variable* var = _processes[i]->variables[j];
+
+            // Assignment requirement: exclude FreeSpace from this table
+            if (var->type != DataType::FreeSpace)
+            {
+                // PID (Width 4)
+                std::cout << " " << std::setw(4) << _processes[i]->pid << " | ";
+
+                // Variable Name (Width 13)
+                std::cout << std::left << std::setw(13) << var->name << " | ";
+
+                // Virtual Address (Hex format, 0x prefix, 8 chars, Width 12)
+                std::cout << "0x" << std::setfill('0') << std::hex << std::uppercase 
+                          << std::setw(8) << var->virtual_address << std::dec << std::setfill(' ') << " | ";
+
+                // Size (Width 10, right aligned by default)
+                std::cout << std::right << std::setw(10) << var->size << std::endl;
+            }
         }
     }
 }
-
 Process* Mmu::getProcessFromPid(uint32_t pid){
     return _processes.at(pid-1024);
 }
