@@ -132,13 +132,29 @@ int main(int argc, char **argv)
             std::cout << "error: process not found" << std::endl;
              }
             }
-        }else if(parts[0] == "print"){
-
-            if(parts_count == 1){
-                std::cout << "Invalid [print] arguments\n";
-            } else{
-                if(parts[1] == "page"){
+        } else if(parts[0] == "print") {
+            if(parts_count < 2) {
+                std::cout << "error: command not recognized" << std::endl;
+            } else {
+                if(parts[1] == "page") {
                     page_table->print();
+                } else if(parts[1] == "mmu") {
+                    mmu->print();
+                } else if(parts[1] == "processes") {
+                    // Logic to list all active PIDs
+                    for (uint32_t i = 1024; i < 2048; i++) {
+                        if (mmu->getProcessFromPid(i) != nullptr) {
+                            std::cout << i << std::endl;
+                        }
+                    }
+                } else if (parts[1].find(':') != std::string::npos) {
+                    // This handles the <PID>:<var_name> printing
+                    std::string pid_str = parts[1].substr(0, parts[1].find(':'));
+                    std::string v_name = parts[1].substr(parts[1].find(':') + 1);
+                    uint32_t pid = std::stoi(pid_str);
+                    
+                    // Call a function or add logic here to print the actual memory values
+                    // (This is the final small task if you want the extra credit details!)
                 }
             }
         }

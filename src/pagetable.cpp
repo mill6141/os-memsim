@@ -118,7 +118,7 @@ void PageTable::removeEntry(uint32_t pid, int page_number) {
     }
 }
 
-/*
+
 void PageTable::freeAllPagesFromProcess(uint32_t pid){
 
     std::vector<std::string> keys = sortedKeys();
@@ -184,6 +184,3 @@ void PageTable::freePageIfRemovingOnlyVariable(uint32_t pid, std::string var_nam
 
 
 }
->>>>>>> origin/Jon
-
-*/

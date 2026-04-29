@@ -34,12 +34,8 @@ uint32_t Mmu::createProcess()
 
 void Mmu::addVariableToProcess(uint32_t pid, std::string var_name, DataType type, uint32_t size, uint32_t address)
 {
-    int i;
-    Process *proc = NULL;
-    std::vector<Process*>::iterator it = std::find_if(_processes.begin(), _processes.end(), [pid](Process* p)
-    { 
-        return p != nullptr && p->pid == pid; 
-    });
+    Process *proc = getProcessFromPid(pid);
+
 
     if (proc != NULL)
     {
@@ -52,6 +48,7 @@ void Mmu::addVariableToProcess(uint32_t pid, std::string var_name, DataType type
     }
 }
 
+
 void Mmu::print()
 {
     std::cout << " PID  | Variable Name | Virtual Addr | Size     " << std::endl;
@@ -63,20 +60,20 @@ void Mmu::print()
         {
             Variable* var = _processes[i]->variables[j];
 
-            // Assignment requirement: exclude FreeSpace from this table
+            // exclude FreeSpace from this table
             if (var->type != DataType::FreeSpace)
             {
-                // PID (Width 4)
+                // PID 
                 std::cout << " " << std::setw(4) << _processes[i]->pid << " | ";
 
-                // Variable Name (Width 13)
+                // Variable Name 
                 std::cout << std::left << std::setw(13) << var->name << " | ";
 
-                // Virtual Address (Hex format, 0x prefix, 8 chars, Width 12)
-                std::cout << "0x" << std::setfill('0') << std::hex << std::uppercase 
-                          << std::setw(8) << var->virtual_address << std::dec << std::setfill(' ') << " | ";
+                // Virtual Address 
+                std::cout << "0x" << std::setfill('0') << std::setw(8) << std::hex << std::uppercase 
+                << var->virtual_address << std::dec << std::setfill(' ') << " | ";
 
-                // Size (Width 10, right aligned by default)
+                // Size
                 std::cout << std::right << std::setw(10) << var->size << std::endl;
             }
         }
